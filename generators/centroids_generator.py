@@ -16,10 +16,10 @@ def amostra_inteiros(min_val=1, max_val=150, quantidade=50, seed=None):
 
 if __name__ == "__main__":
     # Exemplo: 50 inteiros únicos entre 1 e 150
-    numeros = amostra_inteiros(min_val=1, max_val=200000, quantidade=9000, seed=42)
+    numeros = amostra_inteiros(min_val=1, max_val=20000000, quantidade=90000, seed=42)
 
     # Salva em dados_inteiros.csv (uma coluna: valor)
-    with open("centroids_random.csv", "w", newline="") as f:
+    with open("centroids_random_grande.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["valor"])
         for x in sorted(numeros):

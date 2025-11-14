@@ -31,13 +31,13 @@ def amostra_floats_aleatorios(min_val=0.0, max_val=150.0, quantidade=50, n_decim
 
 if __name__ == "__main__":
     # Exemplo 1: 50 valores aleatórios únicos SEM arredondar (alta entropia)
-    numeros = amostra_floats_aleatorios(min_val=0.0, max_val=1500000.0, quantidade=16000, n_decimals=None, seed=42)
+    numeros = amostra_floats_aleatorios(min_val=0.0, max_val=150000000.0, quantidade=160000, n_decimals=None, seed=42)
 
     # (Opcional) Exemplo 2: 50 valores com 2 casas decimais
     # numeros = amostra_floats_aleatorios(min_val=0.0, max_val=150.0, quantidade=50, n_decimals=2, seed=42)
 
     # Salva em CSV (uma coluna: valor) — ordem aleatória (não classifica)
-    with open("dados_random.csv", "w", newline="") as f:
+    with open("dados_random_grande.csv", "w", newline="") as f:
         writer = csv.writer(f)
         for x in numeros:
             writer.writerow([x])
