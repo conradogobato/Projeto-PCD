@@ -30,9 +30,9 @@ nvcc -O2 -std=c++11 -arch=sm_75 kmeans_1d_cuda.cu -o kmeans_1d_cuda.exe
 O algoritmo K-Means 1D em CUDA apresentou convergência estável em todos os experimentos realizados.  
 Para todas as configurações testadas — incluindo diferentes números de blocos no grid — o valor final do erro quadrático total (SSE) foi idêntico:
 
-**SSE final obtido: `1626392838244.792480`**
+**SSE final obtido: `1520953339877.944092`**
 
-O SSE final, foi igual para todos os números de BlocosxThreads (com um número menor de iterações que o MAX_ITER). Isso indica que o resultado final do algoritmo é independente da configuração de paralelismo (desde que o número de threads seja suficiente para cobrir todos os pontos), sendo afetado apenas o tempo de execução.
+O SSE final, foi igual para todos os números de BlocosxThreads (com um número de 607 iterações onde o MAX_ITER era 2000). Isso indica que o resultado final do algoritmo é independente da configuração de paralelismo (desde que o número de threads seja suficiente para cobrir todos os pontos), sendo afetado apenas o tempo de execução.
 
 ### Convergência
 
