@@ -37,7 +37,7 @@ O SSE final, foi igual para todos os números de BlocosxThreads (com um número 
 ### Convergência
 
 O critério de parada baseado na variação relativa do SSE funcionou conforme esperado.  
-Após algumas iterações, o valor do SSE estabilizou, e o algoritmo interrompeu antes de atingir o limite de iterações — evidenciando convergência numérica adequada.
+Após algumas iterações, o valor do SSE estabilizou, e o algoritmo interrompeu antes de atingir o limite de iterações — evidenciando convergência numérica adequada para um eps de 0.000001.
 
 ### Impacto do Número de Blocos (Desempenho GPU)
 
