@@ -62,7 +62,8 @@ static double assignment_local(
 // Função de update global, que usa o MPIAllreduce
 static void update_global(
     const double *Xloc, const int *assign_loc, int nloc,
-    double *C, int K)
+    double *C, int K,
+    double *tempo_allreduce)   // <<< ADICIONADO
 {
     double *sum_loc = calloc(K, sizeof(double));
     int    *cnt_loc = calloc(K, sizeof(int));
@@ -76,8 +77,13 @@ static void update_global(
     double *sum_global = calloc(K, sizeof(double));
     int    *cnt_global = calloc(K, sizeof(int));
 
-    MPI_Allreduce(sum_loc, sum_global, K, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD); // Os dois allreduce, propagam os valores somados para todos os processos
+    // ---- MEDIÇÃO DO TEMPO DOS MPI_Allreduce ----
+    double tA = MPI_Wtime();
+    MPI_Allreduce(sum_loc, sum_global, K, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     MPI_Allreduce(cnt_loc, cnt_global, K, MPI_INT,    MPI_SUM, MPI_COMM_WORLD);
+    double tB = MPI_Wtime();
+    *tempo_allreduce += (tB - tA);
+    // --------------------------------------------
 
     for(int c=0;c<K;c++){
         if(cnt_global[c] > 0)
@@ -92,25 +98,25 @@ static void update_global(
 // ----
 
 // ---- Função principal do K-means com MPI
-double kmeans_1d_mpi(   
+double kmeans_1d_mpi(
     const double *Xloc, int nloc,
     double *C, int K,
     int max_iter, double eps,
     int rank,
-    int *iter_out)   
+    int *iter_out,
+    double *tempo_allreduce)   // <<< ADICIONADO
 {
     double prev_sse = 1e300;
 
     int *assign_loc = malloc(nloc*sizeof(int));
-
-    int it;  
+    int it;
 
     for(it=0; it<max_iter; it++){
         double sse_local = assignment_local(Xloc, nloc, C, K, assign_loc);
 
         double sse_global;
         MPI_Reduce(&sse_local, &sse_global,
-                   1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); //combina valores de todos os processos em um único valor no processo root
+                   1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
         MPI_Bcast(&sse_global, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
@@ -120,11 +126,12 @@ double kmeans_1d_mpi(
         if(rel < eps){
             if(rank == 0)
                 printf("Convergiu na iteração %d (SSE=%.6f)\n", it, sse_global);
+
             prev_sse = sse_global;
             break;
         }
 
-        update_global(Xloc, assign_loc, nloc, C, K);
+        update_global(Xloc, assign_loc, nloc, C, K, tempo_allreduce);
 
         MPI_Bcast(C, K, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
@@ -132,8 +139,8 @@ double kmeans_1d_mpi(
     }
 
     free(assign_loc);
-    *iter_out = it;   // <<< retorna a iteração final
-    return prev_sse;  // <<< retorna o SSE final
+    *iter_out = it;
+    return prev_sse;
 }
 // ----
 
@@ -166,7 +173,7 @@ int main(int argc, char **argv){
         C = read_csv_1col(argv[2], &K);
     }
 
-    MPI_Bcast(&N, 1, MPI_INT,    0, MPI_COMM_WORLD); // Broadcast do processo root para todos os outros processos
+    MPI_Bcast(&N, 1, MPI_INT,    0, MPI_COMM_WORLD);
     MPI_Bcast(&K, 1, MPI_INT,    0, MPI_COMM_WORLD);
 
     if(rank != 0){
@@ -186,26 +193,28 @@ int main(int argc, char **argv){
         for(int p=1; p<P; p++){
             int np = base + (p < rest ? 1 : 0);
             int offp = (p < rest ? p*(base+1) : rest + p*base);
-            MPI_Send(X + offp, np, MPI_DOUBLE, p, 0, MPI_COMM_WORLD); // se for o processo lider, envia os pedaços para os outros processos
+            MPI_Send(X + offp, np, MPI_DOUBLE, p, 0, MPI_COMM_WORLD);
         }
         memcpy(Xloc, X + offset, nloc*sizeof(double));
     } else {
-        MPI_Recv(Xloc, nloc, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // se não, recebe o pedaço do processo lider (Bloqueante)
+        MPI_Recv(Xloc, nloc, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
 
     if(rank==0) printf("Rodando MPI K-means com %d processos...\n", P);
 
-    int iter_final = 0;   
+    int iter_final = 0;
+    double tempo_allreduce = 0.0;  // <<< ADICIONADO
 
     double t0 = MPI_Wtime();
-    double sse_final = kmeans_1d_mpi(Xloc, nloc, C, K, max_iter, eps, rank, &iter_final);  
+    double sse_final = kmeans_1d_mpi(Xloc, nloc, C, K, max_iter, eps, rank, &iter_final, &tempo_allreduce);
     double t1 = MPI_Wtime();
 
     if(rank==0){
-        double tempo = (t1 - t0); 
+        double tempo = (t1 - t0);
         printf("Tempo total: %.6f s\n", tempo);
         printf("SSE final: %.6f\n", sse_final);
-        printf("Parou na iteração: %d\n", iter_final);  
+        printf("Parou na iteração: %d\n", iter_final);
+        printf("Tempo total gasto com MPI_Allreduce: %.6f s\n", tempo_allreduce);
 
         // ---- Salva os centróides finais em arquivo CSV ----
         FILE *fc = fopen("centroids_mpi.csv", "w");
@@ -217,6 +226,7 @@ int main(int argc, char **argv){
             fclose(fc);
         }
 
+        // ---- Printar apenas resumo ----
         printf("Centróides salvos em centroids_mpi.csv\n");
     }
 

@@ -1,10 +1,11 @@
 # K-Means 1D — CUDA
 
 ## Run on Google Colab
+[text](https://colab.research.google.com/drive/1Ww9FaAR5-u5ku9YqC0yFFPVzcOSpNYZr)
 ### 1.
 !nvcc -O2 -std=c++11 -arch=sm_75 kmeans_1d_cuda.cu -o kmeans_1d_cuda
 ### 2.
-!./kmeans_1d_cuda dados.csv centroides_iniciais.csv [max_iter=50] [eps=1e-4] [assign.csv] [centroids.csv]
+!./kmeans_1d_cuda dados_random.csv centroids_random.csv [max_iter=50] [eps=1e-4] [assign.csv] [centroids.csv]
 
 ---
 
@@ -12,7 +13,7 @@
 ### 1.
 nvcc -O2 -std=c++11 -arch=sm_75 kmeans_1d_cuda.cu -o kmeans_1d_cuda
 ### 2.
-./kmeans_1d_cuda dados.csv centroides_iniciais.csv [max_iter=50] [eps=1e-4] [assign.csv] [centroids.csv]
+./kmeans_1d_cuda dados_random.csv centroids_random.csv [max_iter=50] [eps=1e-4] [assign.csv] [centroids.csv]
 
 ---
 
@@ -20,7 +21,7 @@ nvcc -O2 -std=c++11 -arch=sm_75 kmeans_1d_cuda.cu -o kmeans_1d_cuda
 ### 1.
 nvcc -O2 -std=c++11 -arch=sm_75 kmeans_1d_cuda.cu -o kmeans_1d_cuda.exe
 ### 2.
-./kmeans_1d_cuda.exe dados.csv centroides_iniciais.csv [max_iter=50] [eps=1e-4] [assign.csv] [centroids.csv]
+./kmeans_1d_cuda.exe dados_random.csv centroids_random.csv [max_iter=50] [eps=1e-4] [assign.csv] [centroids.csv]
 
 
 ---
