@@ -1,0 +1,2 @@
+localhost slots=8
+ec2node slots=2
