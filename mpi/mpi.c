@@ -63,7 +63,7 @@ static double assignment_local(
 static void update_global(
     const double *Xloc, const int *assign_loc, int nloc,
     double *C, int K,
-    double *tempo_allreduce)   // <<< ADICIONADO
+    double *tempo_allreduce)   
 {
     double *sum_loc = calloc(K, sizeof(double));
     int    *cnt_loc = calloc(K, sizeof(int));
@@ -104,7 +104,7 @@ double kmeans_1d_mpi(
     int max_iter, double eps,
     int rank,
     int *iter_out,
-    double *tempo_allreduce)   // <<< ADICIONADO
+    double *tempo_allreduce)   
 {
     double prev_sse = 1e300;
 
@@ -203,7 +203,7 @@ int main(int argc, char **argv){
     if(rank==0) printf("Rodando MPI K-means com %d processos...\n", P);
 
     int iter_final = 0;
-    double tempo_allreduce = 0.0;  // <<< ADICIONADO
+    double tempo_allreduce = 0.0;  
 
     double t0 = MPI_Wtime();
     double sse_final = kmeans_1d_mpi(Xloc, nloc, C, K, max_iter, eps, rank, &iter_final, &tempo_allreduce);
