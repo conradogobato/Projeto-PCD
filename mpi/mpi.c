@@ -226,8 +226,6 @@ int main(int argc, char **argv){
             fclose(fc);
         }
 
-        // ---- Printar apenas resumo ----
-        printf("Centróides salvos em centroids_mpi.csv\n");
     }
 
     free(C);
